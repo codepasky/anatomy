@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>A&P Prefix Flashcards</title>
+<style>
+  :root{
+    --ink:#2b2620;
+    --paper:#f6f1e7;
+    --card:#fffdf8;
+    --line:#d8cdb8;
+    --accent:#6b7a5e;
+    --accent2:#a3512b;
+    --muted:#8a8070;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--paper);
+    background-image:
+      radial-gradient(circle at 1px 1px, #00000008 1px, transparent 0);
+    background-size: 22px 22px;
+    color:var(--ink);
+    font-family: Georgia, 'Iowan Old Style', 'Palatino Linotype', serif;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    padding:28px 16px 60px;
+    min-height:100vh;
+  }
+  h1{
+    font-size:1.5rem;
+    letter-spacing:0.02em;
+    margin:0 0 2px;
+    font-weight:700;
+  }
+  .sub{
+    color:var(--muted);
+    font-size:0.85rem;
+    margin-bottom:22px;
+    font-style:italic;
+  }
+  .controls{
+    width:100%;
+    max-width:520px;
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+    margin-bottom:22px;
+  }
+  label{
+    font-size:0.72rem;
+    text-transform:uppercase;
+    letter-spacing:0.12em;
+    color:var(--accent);
+    font-family: 'Trebuchet MS', sans-serif;
+    font-weight:700;
+  }
+  select{
+    width:100%;
+    padding:11px 12px;
+    font-size:0.95rem;
+    font-family: inherit;
+    border:1px solid var(--line);
+    border-radius:3px;
+    background:var(--card);
+    color:var(--ink);
+    appearance:none;
+    background-image: linear-gradient(45deg, transparent 50%, var(--accent2) 50%), linear-gradient(135deg, var(--accent2) 50%, transparent 50%);
+    background-position: calc(100% - 18px) center, calc(100% - 13px) center;
+    background-size: 5px 5px, 5px 5px;
+    background-repeat: no-repeat;
+  }
+  select:focus{outline:2px solid var(--accent); outline-offset:1px;}
+
+  .deck-meta{
+    width:100%;
+    max-width:520px;
+    display:flex;
+    justify-content:space-between;
+    align-items:baseline;
+    margin-bottom:10px;
+    font-family:'Trebuchet MS', sans-serif;
+  }
+  .deck-title{
+    font-weight:700;
+    color:var(--accent2);
+    font-size:0.95rem;
+  }
+  .count{
+    color:var(--muted);
+    font-size:0.8rem;
+  }
+
+  .stage{
+    width:100%;
+    max-width:520px;
+    perspective:1400px;
+  }
+  .card{
+    position:relative;
+    width:100%;
+    height:280px;
+    cursor:pointer;
+  }
+  .card-inner{
+    position:absolute;
+    inset:0;
+    transform-style:preserve-3d;
+    transition:transform 0.5s cubic-bezier(.4,.2,.2,1);
+  }
+  .card.flipped .card-inner{transform:rotateY(180deg);}
+  .face{
+    position:absolute;
+    inset:0;
+    backface-visibility:hidden;
+    border:1px solid var(--line);
+    border-radius:6px;
+    background:var(--card);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.04), 0 8px 18px rgba(43,38,32,0.08);
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+    padding:28px;
+  }
+  .face::before{
+    content:'';
+    position:absolute;
+    top:10px; left:10px; right:10px; bottom:10px;
+    border:1px dashed var(--line);
+    border-radius:3px;
+    pointer-events:none;
+  }
+  .front .tag{
+    font-family:'Trebuchet MS', sans-serif;
+    font-size:0.68rem;
+    letter-spacing:0.15em;
+    text-transform:uppercase;
+    color:var(--muted);
+    margin-bottom:16px;
+  }
+  .front .prefix{
+    font-size:2.6rem;
+    font-weight:700;
+    color:var(--ink);
+  }
+  .front .hint{
+    margin-top:18px;
+    font-size:0.78rem;
+    color:var(--accent);
+    font-style:italic;
+  }
+  .back{
+    transform:rotateY(180deg);
+    background:#faf4e8;
+  }
+  .back .meaning{
+    font-size:1.3rem;
+    font-weight:700;
+    color:var(--accent2);
+    margin-bottom:14px;
+  }
+  .back .meaning-label{
+    font-family:'Trebuchet MS', sans-serif;
+    font-size:0.68rem;
+    letter-spacing:0.15em;
+    text-transform:uppercase;
+    color:var(--muted);
+    margin-bottom:6px;
+  }
+  .back .example{
+    font-size:0.92rem;
+    line-height:1.5;
+    color:var(--ink);
+    max-width:400px;
+  }
+  .back .example b{color:var(--accent2);}
+
+  .nav{
+    width:100%;
+    max-width:520px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin-top:18px;
+    font-family:'Trebuchet MS', sans-serif;
+  }
+  .nav button{
+    font-family:inherit;
+    font-size:0.85rem;
+    padding:9px 16px;
+    border:1px solid var(--ink);
+    background:var(--ink);
+    color:var(--paper);
+    border-radius:3px;
+    cursor:pointer;
+  }
+  .nav button:disabled{opacity:0.3; cursor:default;}
+  .nav button.ghost{
+    background:transparent;
+    color:var(--ink);
+  }
+  .progress{
+    font-size:0.8rem;
+    color:var(--muted);
+  }
+  .jump-row{
+    width:100%;
+    max-width:520px;
+    display:flex;
+    flex-wrap:wrap;
+    gap:6px;
+    margin-top:16px;
+  }
+  .jump-row button{
+    width:30px;height:30px;
+    border-radius:50%;
+    border:1px solid var(--line);
+    background:var(--card);
+    color:var(--muted);
+    font-size:0.7rem;
+    font-family:'Trebuchet MS', sans-serif;
+    cursor:pointer;
+  }
+  .jump-row button.active{
+    background:var(--accent);
+    border-color:var(--accent);
+    color:#fff;
+    font-weight:700;
+  }
+  .empty{
+    color:var(--muted);
+    font-style:italic;
+    margin-top:40px;
+  }
+  @media (max-width:480px){
+    .card{height:250px;}
+    .front .prefix{font-size:2rem;}
+  }
+</style>
+</head>
+<body>
+  <h1>Anatomy &amp; Physiology — Prefix Flashcards</h1>
+  <div class="sub">Pick a class date to study that day's assigned prefixes, or browse a whole chapter.</div>
+
+  <div class="controls">
+    <div>
+      <label for="dateSelect">By class date (assigned range)</label>
+      <select id="dateSelect"></select>
+    </div>
+    <div>
+      <label for="chapterSelect">Or browse a full chapter</label>
+      <select id="chapterSelect"></select>
+    </div>
+  </div>
+
+  <div class="deck-meta">
+    <div class="deck-title" id="deckTitle"></div>
+    <div class="count" id="deckCount"></div>
+  </div>
+
+  <div class="stage">
+    <div class="card" id="card">
+      <div class="card-inner">
+        <div class="face front">
+          <div class="tag">Prefix</div>
+          <div class="prefix" id="prefixText"></div>
+          <div class="hint">tap to reveal meaning</div>
+        </div>
+        <div class="face back">
+          <div class="meaning-label">Meaning</div>
+          <div class="meaning" id="meaningText"></div>
+          <div class="example" id="exampleText"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="nav">
+    <button class="ghost" id="prevBtn">&larr; Prev</button>
+    <div class="progress" id="progressText"></div>
+    <button id="nextBtn">Next &rarr;</button>
+  </div>
+
+  <div class="jump-row" id="jumpRow"></div>
+
+<script>
+// ---- Chapter term data (prefix, meaning, example) ----
+const chapters = {
+1:[["Append","to hang something","appendicular – pertaining to the upper limbs and lower limbs"],
+["Cardi-","heart","pericardium – membrane that surrounds the heart"],
+["Cerebr-","brain","cerebrum – largest portion of the brain"],
+["Cran-","helmet","cranial – pertaining to the portion of the skull that surrounds the brain"],
+["Dors-","back","dorsal – position toward the back of the body"],
+["Homeo","same","homeostasis – maintenance of a stable internal environment"],
+["-ology","the study of","physiology – study of body functions"],
+["meta-","change","metabolism – chemical changes that occur within the body"],
+["nas-","nose","nasal – pertaining to the nose"],
+["orb-","circle","orbital – pertaining to the portion of skull that encircles an eye"],
+["pariet-","wall","parietal membrane – membrane that lines the wall of a cavity"],
+["pelv-","basin","pelvic cavity – basin-shaped cavity enclosed by the pelvic bones"],
+["peri-","around","pericardial membrane – membrane that surrounds the heart"],
+["pleur-","rib","pleural membrane – membrane that encloses the lungs within the rib cage"],
+["-stasis","standing still","homeostasis – maintenance of stable internal environment"],
+["super-","above","superior – referring to a body part located above another"],
+["-tomy","cutting","anatomy – study of structure, which often involves cutting or removing body parts"]],
+2:[["Bio-","living","biochemistry – branch of science dealing with the chemistry of life forms"],
+["di-","two","disaccharide – compound of two saccharide units bound together"],
+["glyc-","sweet, sugar","glycogen – complex carbohydrate composed of bound sugar molecules"],
+["iso-","equal","isotope – atom with the same atomic number but a different atomic mass"],
+["lip-","fat","lipids – group of organic compounds that includes fats"],
+["-lyt","dissolvable","electrolyte – substance that dissolves in water and releases ions"],
+["mono-","one","monosaccharide – compound of a single saccharide unit, e.g. glucose"],
+["nucle-","kernel","nucleus – central core of an atom"],
+["poly","many","polyunsaturated – molecule with many double bonds between carbon atoms"],
+["sacchar-","sugar","monosaccharide – sugar molecule composed of a single saccharide unit"],
+["syn-","together","synthesis – process by which substances unite to form a new substance"],
+["-valent","having power","covalent bond – bond produced when two atoms share electrons"]],
+3:[["Cyt-","cell","cytoplasm – fluid and organelles between the cell membrane and nuclear envelope"],
+["Endo-","within","endoplasmic reticulum – membranous complex in the cytoplasm"],
+["Hyper-","above, higher","hypertonic – solution with greater osmotic pressure than the cytosol"],
+["Hypo-","below, lower","hypotonic – solution with lesser osmotic pressure than the cytosol"],
+["Inter-","between","interphase – stage between mitotic divisions of a cell"],
+["Iso-","equal","isotonic – solution with osmotic pressure equal to that of the cytosol"],
+["Lys-","to break up, to cut","lysosome – organelle containing enzymes that break down macromolecules"],
+["Mit-","thread","mitosis – stage of the cell cycle"],
+["Phag-","to eat","phagocytosis – process by which a cell takes in solid particles"],
+["Pino-","to drink","pinocytosis – process by which a cell takes in tiny droplets of liquid"],
+["Pro-","before","prophase – first stage of mitosis"],
+["-som","body","ribosome – structure of protein and RNA, site of protein synthesis"],
+["vesic-","bladder","vesicle – small saclike organelle that transports or secretes substances"]],
+4:[["Aer-","air","aerobic respiration – respiratory process that requires oxygen"],
+["An-","without","anaerobic respiration – respiratory process that does not require oxygen"],
+["Ana-","up","anabolism – processes that build larger molecules from smaller ones"],
+["Cata-","down","catabolism – processes that break larger molecules into smaller ones"],
+["Co-","with","coenzyme – substance that unites with a protein to complete an active enzyme"],
+["De-","undoing","deamination – process that removes nitrogen-containing portions of amino acids"],
+["Mut-","change","mutation – change in genetic information"],
+["-strat","spread out","substrate – substance upon which an enzyme acts"],
+["sub-","under","substrate – substance upon which an enzyme acts"],
+["-zym","causing to ferment","enzyme – protein that speeds a chemical reaction without being consumed"]],
+5:[["Adip-","fat","adipose tissue – tissue that stores fats"],
+["Chondr-","cartilage","chondrocyte – cartilage cell"],
+["-Cyt","cell","osteocyte – bone cell"],
+["Epi-","upon, in addition","epithelial tissue – tissue that covers all free body space"],
+["-glia","glue","neuroglia – cells that support neurons"],
+["Hist-","web, tissue","histology – study of composition and function of tissues"],
+["Hyal-","resemblance to glass","hyaline cartilage – flexible tissue containing chondrocytes"],
+["Inter-","among, between","intercalated disc – band between adjacent cardiac muscles"],
+["Macr-","large","macrophage – large phagocytic cell"],
+["Neur-","nerve","neuron – nerve cell"],
+["Os-","bone","osseous tissue – bone tissue"],
+["Phag-","to eat","phagocyte – cell that engulfs and destroys foreign particles"],
+["pseud-","false","pseudostratified epithelium – tissue that appears layered but is not"],
+["Squam-","scale, flat","squamous epithelium – tissue with flattened, scale-like cells"],
+["Strat-","layer","stratified epithelium – tissue with cells arranged in layers"],
+["Stria-","groove","striated muscle – tissue with alternating light and dark cross-markings"]],
+6:[["Alb-","white","albinism – condition characterized by a lack of pigment"],
+["Cut-","skin","subcutaneous – beneath the skin"],
+["Derm-","skin","dermis – inner layer of the skin"],
+["Epi-","upon","epidermis – outer layer of the skin"],
+["Follic-","small bag","hair follicle – tube-like depression in which a hair develops"],
+["Hol-","entire, whole","holocrine gland – gland that discharges the entire cell with its secretion"],
+["Kerat-","horn","keratin – protein produced as epidermal cells die and harden"],
+["Melan-","black","melanin – dark pigment produced by melanocytes"],
+["Por-","passage","pore – opening by which a sweat gland reaches the skin's surface"],
+["Seb-","grease","sebaceous gland – gland that secretes an oily substance"]],
+7:[["Ax-","axis","axial skeleton – upright portion supporting the head, neck, and trunk"],
+["-blast","bud","osteoblast – cell that will form bone tissue"],
+["canal-","channel","canaliculus – tubular passage"],
+["carp-","wrist","carpals – wrist bones"],
+["-clast","break","osteoclast – cell that breaks down bone tissue"],
+["clav-","bar","clavicle – bone that articulates with the sternum and scapula"],
+["condyl-","knob","condyle – e.g. lateral condyle of femur"],
+["corac-","a crow's beak","coracoid process – beaklike process of the scapula"],
+["cribr-","sieve","cribriform plate – portion of ethmoid bone with many small openings"],
+["crist-","crest","crista galli – bony ridge projecting into the cranial cavity"],
+["fov-","pit","fovea capitis – pit in the head of a femur"],
+["glen-","joint socket","glenoid cavity – depression in the scapula that articulates with the humerus"],
+["inter-","among, between","intervertebral disc – structure between adjacent vertebrae"],
+["intra-","inside","intramembranous bone – bone that forms within sheet-like connective tissue"],
+["lamell-","thin plate","lamella – thin bony plate"],
+["meat-","passage","auditory meatus – canal of the temporal bone leading to the ear"],
+["odont-","tooth","odontoid process – tooth-like process of the second cervical vertebra"],
+["poie-","make, produce","hematopoiesis – process that forms blood cells"]],
+8:[["Acetabul-","vinegar cup","acetabulum – depression of the coxa that articulates with the femur"],
+["anul-","ring","anular ligament – ring-shaped band below the elbow encircling the radius"],
+["arth-","joint","arthrology – study of joints and ligaments"],
+["burs-","bag, sac","prepatellar bursa – fluid-filled sac between skin and patella"],
+["labr-","lip","glenoidal labrum – rim of fibrocartilage on the glenoid cavity"],
+["ov","egg-like","synovial fluid – thick fluid within the joint cavity"],
+["suture-","sewing","suture – joint where flat bones are interlocked by bony processes"],
+["syndesm-","binding together","syndesmosis – joint held together by long connective-tissue fibers"]],
+9:[["Fasc","bundle","fascicle – bundle of muscle fibers"],
+["Laten","hidden","latent period – period between stimulation and contraction onset"],
+["Myo","muscle","myofibril – contractile fiber of a muscle cell"],
+["Reticul","network of channels","sarcoplasmic reticulum – network of channels within a muscle fiber"],
+["Tetan","stiff","tetanic contraction – tension of a muscle remains unchanged"],
+["Troph","well fed","hypertrophy – enlargement of muscle fibers"]],
+10:[["Astr-","starlike","astrocyte – star-shaped neuroglial cell"],
+["Bi-","two","bipolar neuron – neuron with two processes extending from the cell body"],
+["Dendr-","tree","dendrite – branched nerve process serving as the receptor surface of a neuron"],
+["Moto-","moving","motor neuron – neuron that stimulates a muscle or gland"],
+["Multi-","many","multipolar neuron – neuron with many processes extending from the cell body"],
+["Oligo-","few","oligodendrocyte – small neuroglial cell with few processes"],
+["Peri-","around","peripheral nervous system – nerves branching from brain and spinal cord"]],
+11:[["Cephal-","head","encephalitis – inflammation of the brain"],
+["chiasm-","cross","optic chiasma – X-shaped structure from crossing optic nerve fibers"],
+["Flacc-","flabby","flaccid paralysis – paralysis with loss of tone in innervated muscles"],
+["Funi-","small cord of fiber","funiculus – major nerve tract within the spinal cord"],
+["Gangli-","swelling","ganglion – mass of neuron cell bodies"],
+["mening-","membrane","meninges – membranous coverings of the brain and spinal cord"],
+["plex-","interweaving","choroid plexus – mass of capillaries associated with brain spaces"]],
+12:[["aud-","to hear","auditory – pertaining to hearing"],
+["choroid-","skin-like","choroid coat – middle, vascular layer of the eye"],
+["cochlea","snail","cochlea – coiled tube within the inner ear"],
+["corn-","horn","cornea – transparent outer layer at the front of the eye"],
+["iris","rainbow","iris – colored, muscular part of the eye"],
+["labyrinth","maze","labyrinth – connecting chambers and tubes of the inner ear"],
+["lacri-","tears","lacrimal gland – tear gland"],
+["lut-","yellow","macula lutea – yellowish spot on the retina"],
+["macula","spot","macula lutea – yellowish spot on the retina"],
+["malle-","hammer","malleus – one of three bones in the middle ear"],
+["oculi-","eye","orbicularis oculi – muscle associated with the eyelid"],
+["olfact-","to smell","olfactory – pertaining to the sense of smell"],
+["palpebra","eyelid","levator palpebrae superioris – muscle associated with the eyelid"],
+["photo-","light","photoreceptors – structures in the eye responsive to light"],
+["scler-","hard","sclera – tough, outer protective layer of the eye"],
+["therm-","heat","thermoreceptor – receptor sensitive to changes in temperature"],
+["tympan-","drum","tympanic membrane – eardrum"],
+["vitre-","glass","vitreous humor – clear, jelly-like substance within the eye"]],
+13:[["cort-","bark, rind","adrenal cortex – outer portion of an adrenal gland"],
+["-crin","to secrete","endocrine – pertaining to internal secretions"],
+["diuret-","to pass urine","diuretic – substance that promotes the production of urine"],
+["endo-","within","endocrine gland – gland that releases secretion internally into a body fluid"],
+["exo-","outside","exocrine gland – gland that releases secretion to the outside through a duct"],
+["horm-","impetus, impulse","hormone – substance a cell secretes that affects another cell"],
+["hyper-","above","hyperthyroidism – above-normal secretion of thyroid hormone"],
+["hypo-","below","hypothyroidism – below-normal secretion of thyroid hormone"],
+["lact-","milk","prolactin – hormone that promotes milk production"],
+["med-","middle","adrenal medulla – middle section of an adrenal gland"],
+["para-","beside","parathyroid glands – glands located near the surface of the thyroid"],
+["toc-","birth","oxytocin – hormone that stimulates uterine contraction during childbirth"],
+["-tropic","influencing","adrenocorticotropic hormone – stimulates the adrenal cortex"],
+["vas-","vessel","vasopressin – substance that causes blood vessel walls to contract"]],
+14:[["agglutin-","to glue together","agglutination – clumping of red blood cells"],
+["bil-","bile","bilirubin – pigment excreted in the bile"],
+["-crit","to separate","hematocrit – percentage by volume of cells in a blood sample"],
+["embol-","stopper","embolism – obstruction of a blood vessel"],
+["erythr-","red","erythrocyte – red blood cell"],
+["hem-","blood","hemoglobin – red pigment responsible for the color of blood"],
+["hepat-","liver","heparin – anticoagulant secreted by liver cells"],
+["leuko-","white","leukocyte – white blood cell"],
+["-lys","to break up","fibrinolysin – protein-splitting enzyme that can digest fibrin"],
+["macro-","large","macrophage – large phagocytic cell"],
+["-osis","abnormal condition","leukocytosis – overproduction of white blood cells"],
+["-poie","make, produce","erythropoietin – hormone that stimulates red blood cell production"],
+["poly-","many","polycythemia – overproduction of red blood cells"],
+["-sta","halt, make stand","hemostasis – arrest of bleeding from damaged blood vessels"],
+["thromb-","clot","thrombocyte – blood platelet involved in clot formation"]],
+15:[["angio-","vessel","angiotensin – substance that constricts blood vessels"],
+["ather-","porridge","atherosclerosis – deposits of plaque in arteries"],
+["brady-","slow","bradycardia – abnormally slow heartbeat"],
+["diastol-","dilation","diastolic pressure – blood pressure when the ventricle is relaxed"],
+["edem-","swelling","edema – condition in which fluids accumulate and cause tissues to swell"],
+["-gram","something written","electrocardiogram – recording of electrical changes in the myocardium"],
+["lun-","moon","semilunar valve – valve with crescent-shaped flaps"],
+["myo-","muscle","myocardium – muscle tissue within the wall of the heart"],
+["papill-","nipple","papillary muscle – small mound of muscle within a ventricle"],
+["phleb-","vein","phlebitis – inflammation of a vein"],
+["scler-","hard","arteriosclerosis – loss of elasticity and hardening of a blood vessel wall"],
+["syn-","together","syncytium – mass of merging cells that act together"],
+["systol-","contraction","systolic pressure – blood pressure from a ventricular contraction"],
+["tachy-","rapid","tachycardia – abnormally fast heartbeat"]],
+16:[["auto-","self","autoimmune disease – immune system attacks the body's own tissues"],
+["-gen","become, be produced","allergen – substance that stimulates an allergic response"],
+["humor-","moisture, fluid","humoral immunity – immunity resulting from antibodies in body fluids"],
+["immune-","free, exempt","immunity – resistance to a specific disease"],
+["inflamm-","to set on fire","inflammation – localized redness, heat, swelling, and pain in tissues"],
+["nod-","know","nodule – small mass of lymphocytes surrounded by connective tissue"],
+["patho-","disease, sickness","pathogen – disease-causing agent"]],
+17:[["aliment-","food","alimentary canal – tube-like portion of the digestive system"],
+["cari-","decay","dental caries – tooth decay"],
+["cec-","blindness","cecum – blind-ended sac at the beginning of the large intestine"],
+["chym-","juice","chyme – semifluid paste of food particles and gastric juice"],
+["decidu-","falling off","deciduous teeth – teeth shed during childhood"],
+["frenul-","bridle, restraint","frenulum – fold that anchors the tongue to the floor of the mouth"],
+["gastr-","stomach","gastric gland – portion of the stomach that secretes gastric juice"],
+["hepat-","liver","hepatic duct – duct carrying bile from liver to the common bile duct"],
+["hiat-","opening","esophageal hiatus – opening through which the esophagus penetrates the diaphragm"],
+["lingu-","tongue","lingual tonsil – lymphatic tissue at the root of the tongue"],
+["pyl-","gatekeeper, door","pyloric sphincter – valve between stomach and small intestine"],
+["rect-","straight","rectum – distal portion of the large intestine"],
+["sorpt-","to soak up","absorption – uptake of substances"],
+["vill-","hairy","villi – tiny projections of mucous membrane in the small intestine"]],
+18:[["bas-","base","basal metabolic rate – metabolic rate of the body at rest"],
+["calor-","heat","calorie – unit measuring heat or energy content of food"],
+["carot-","carrot","carotene – yellowish plant pigment"],
+["lip-","fat","lipids – fat or fatlike substances insoluble in water"],
+["mal-","bad, abnormal","malnutrition – poor nutrition resulting from lack of food"],
+["-meter","measure","calorimeter – instrument that measures the caloric content of food"],
+["nutri-","nourish","nutrient – substance needed to nourish cells"],
+["obes-","fat","obesity – condition in which the body contains excess fat"],
+["pell-","skin","pellagra – vitamin deficiency causing inflammation of the skin"]],
+19:[["alveol-","small cavity","alveolus – microscopic air sac within a lung"],
+["bronch-","windpipe","bronchus – primary branch of the trachea"],
+["carcin-","spreading sore","carcinoma – a type of cancer"],
+["carin-","keel-like","carina – ridge of cartilage between the right and left bronchi"],
+["cric-","ring","cricoid cartilage – ring-shaped cartilage at the base of the larynx"],
+["epi-","upon","epiglottis – flap that partially covers the larynx during swallowing"],
+["hem-","blood","hemoglobin – pigment in red blood cells"],
+["inhal-","to breathe in","inhalation – to take air into the lungs"],
+["phren-","mind, diaphragm","phrenic nerve – nerve that stimulates the diaphragm to contract"],
+["tuber-","swelling","tuberculosis – disease with fibrous masses forming in the lungs"]],
+20:[["af-","to","afferent arteriole – arteriole that leads to a nephron"],
+["calyc-","small cup","major calyces – cuplike subdivision of the renal pelvis"],
+["cort-","covering","renal cortex – shell of tissue surrounding the inner kidney"],
+["cyst-","bladder","cystitis – inflammation of the bladder"],
+["detrus-","to force away","detrusor muscle – muscle causing urine to be expelled"],
+["glom-","little ball","glomerulus – cluster of capillaries within a renal corpuscle"],
+["juxta-","near to","juxtamedullary nephron – nephron located near the renal medulla"],
+["mict-","to pass urine","micturition – process of expelling urine from the bladder"],
+["nephr-","pertaining to the kidney","nephron – functional unit of a kidney"],
+["papill-","nipple","renal papillae – small elevations projecting into a renal calyx"],
+["prox-","nearest","proximal tubule – coiled portion of the renal tubule near the glomerular capsule"],
+["ren-","kidney","renal cortex – outer region of a kidney"],
+["trigon-","triangular shape","trigone – triangular area on the internal floor of the bladder"]],
+21:[["de-","separation from","dehydration – removal of water from cells or body fluids"],
+["edem-","swelling","edema – abnormal accumulation of extracellular fluid"],
+["-emia","blood condition","hypoproteinemia – abnormally low concentration of blood plasma protein"],
+["extra-","outside","extracellular fluid – fluid outside of the body cells"],
+["im-","not","imbalance – condition where factors are not in equilibrium"],
+["intra-","within","intracellular fluid – fluid within the body cells"],
+["neutr-","neither one for the other","neutral – solution that is neither acidic nor basic"],
+["-osis","a state of","acidosis – abnormally high hydrogen ion concentration"],
+["-uria","urine condition","ketonuria – presence of ketone bodies in the urine"]],
+22:[["andr-","man","androgens – male sex hormones"],
+["contra-","against, counter","contraception – prevention of fertilization"],
+["crur-","lower part","crura – diverging parts at the base of the penis"],
+["ejacul-","to shoot forth","ejaculation – process by which semen is expelled"],
+["fimb-","fringe","fimbriae – extensions on the margin of the infundibulum of the uterine tube"],
+["follic-","small bag","follicle – ovarian structure that contains an egg"],
+["genesis","origin","spermatogenesis – formation of sperm cells"],
+["gubern-","to steer, to guide","gubernaculum – cord that guides the descent of a testis"],
+["labi-","lip","labia minora – folds extending along the margins of the female vestibule"],
+["mamm-","breast","mammary gland – gland that secretes milk"],
+["mast-","breast","mastitis – inflammation of the mammary gland"],
+["mens-","month","menses – monthly flow of blood from the female reproductive system"],
+["mons","an eminence","mons pubis – rounded elevation of fatty tissue overlying the symphysis pubis"],
+["oo-","egg","oogenesis – formation of an egg"],
+["prim-","first","primordial follicle – follicle composed of an egg with one layer of cells"],
+["puber-","adult","puberty – time when a person becomes able to reproduce"],
+["zom-","belt","zona pellucida – transparent layer surrounding an oocyte"]],
+23:[["Allant-","sausage","allantois – tubelike structure extending from the yolk sac"],
+["chorio-","skin","chorion – outermost membrane surrounding the fetus and its membranes"],
+["cleav-","to divide","cleavage – period when a zygote divides into smaller cells"],
+["ect-","outside","ectoderm – outermost germ layer of the embryo"],
+["lacun-","pool","lacuna – space between chorionic villi that fills with maternal blood"],
+["lanug-","down","lanugo – fine hair covering the fetus"],
+["mes-","middle","mesoderm – middle germ layer of the embryo"],
+["morul-","mulberry","morula – embryonic structure of about sixteen cells resembling a mulberry"],
+["nat-","to be born","prenatal – period of development before birth"],
+["ne-","new, young","neonatal period – first four weeks after birth"],
+["post-","after","postnatal period – period of development after birth"],
+["pre-","before","prenatal period – period of development before birth"],
+["sen-","old","senescence – process of growing old"],
+["troph-","nurture","trophoblast – cellular layer that helps nourish the inner cell mass"],
+["Umbil-","navel","umbilical cord – structure connecting the fetus to the placenta"]],
+24:[["Chromo-","color","chromosome – colored body in a cell's nucleus that includes the genes"],
+["Hetero-","other, different","heterozygous – condition where gene pair members differ"],
+["Hom-","same, common","homologous chromosomes – pair with similar genetic information"],
+["Karyo-","nucleus","karyotype – chart displaying chromosomes in size order"],
+["Mono-","one","monosomy – a chromosome present in only one copy"],
+["Phen-","show, be seen","phenotype – physical appearance resulting from gene expression"],
+["Tri-","three","trisomy – three copies of a chromosome"]]
+};
+
+const chapterNames = {
+1:"Ch. 1 — Introduction to the Human Body",
+2:"Ch. 2 — Chemical Basis of Life",
+3:"Ch. 3 — Cells",
+4:"Ch. 4 — Cellular Metabolism",
+5:"Ch. 5 — Tissues",
+6:"Ch. 6 — Integumentary System",
+7:"Ch. 7 — Skeletal System",
+8:"Ch. 8 — Joints of the Skeletal System",
+9:"Ch. 9 — Muscular System",
+10:"Ch. 10 — Nervous System I",
+11:"Ch. 11 — Nervous System II",
+12:"Ch. 12 — Somatic & Special Senses",
+13:"Ch. 13 — Endocrine System",
+14:"Ch. 14 — Blood",
+15:"Ch. 15 — Cardiovascular System",
+16:"Ch. 16 — Lymphatic System & Immunity",
+17:"Ch. 17 — Digestive System",
+18:"Ch. 18 — Nutrition & Metabolism",
+19:"Ch. 19 — Respiratory System",
+20:"Ch. 20 — Urinary System",
+21:"Ch. 21 — Water, Electrolyte & Acid-Base Balance",
+22:"Ch. 22 — Reproductive Systems",
+23:"Ch. 23 — Pregnancy, Growth & Development",
+24:"Ch. 24 — Genetics & Genomics"
+};
+
+// ---- Class schedule: date, chapter, [startIndex, endIndexInclusive], label ----
+const schedule = [
+  {date:"Thu 8/20/26", ch:1, range:[0,8], label:"Append – Nas"},
+  {date:"Tue 8/25/26", ch:1, range:[9,16], label:"Orb – -tomy"},
+  {date:"Thu 8/27/26", ch:2, range:[0,4], label:"Bio – Lip"},
+  {date:"Tue 9/1/26", ch:2, range:[5,11], label:"-lyt – -valent"},
+  {date:"Thu 9/3/26", ch:3, range:[0,4], label:"Cyt – Inter"},
+  {date:"Thu 9/10/26", ch:3, range:[5,12], label:"Iso – vesic"},
+  {date:"Tue 9/15/26", ch:4, range:[0,4], label:"Aer – Co"},
+  {date:"Thu 9/17/26", ch:4, range:[5,9], label:"De – -zym"},
+  {date:"Tue 9/22/26", ch:5, range:[0,7], label:"Adip – Inter"},
+  {date:"Thu 9/24/26", ch:5, range:[8,15], label:"Macr – Stria"},
+  {date:"Tue 9/29/26", ch:6, range:[0,4], label:"Alb – Follic"},
+  {date:"Thu 10/1/26", ch:6, range:[5,9], label:"Hol – Seb"},
+  {date:"Thu 10/8/26", ch:7, range:[0,12], label:"Ax – Inter"},
+  {date:"Tue 10/13/26", ch:7, range:[13,17], label:"Intra – Poie"}
+];
+
+// ---- State ----
+let currentDeck = [];
+let idx = 0;
+
+const dateSelect = document.getElementById('dateSelect');
+const chapterSelect = document.getElementById('chapterSelect');
+const deckTitle = document.getElementById('deckTitle');
+const deckCount = document.getElementById('deckCount');
+const cardEl = document.getElementById('card');
+const prefixText = document.getElementById('prefixText');
+const meaningText = document.getElementById('meaningText');
+const exampleText = document.getElementById('exampleText');
+const prevBtn = document.getElementById('prevBtn');
+const nextBtn = document.getElementById('nextBtn');
+const progressText = document.getElementById('progressText');
+const jumpRow = document.getElementById('jumpRow');
+
+// populate date dropdown
+const dPlaceholder = document.createElement('option');
+dPlaceholder.textContent = "— choose a class date —";
+dPlaceholder.value = "";
+dateSelect.appendChild(dPlaceholder);
+schedule.forEach((s,i)=>{
+  const opt = document.createElement('option');
+  opt.value = i;
+  opt.textContent = `${s.date} — Ch.${s.ch}: ${s.label}`;
+  dateSelect.appendChild(opt);
+});
+
+// populate chapter dropdown
+const cPlaceholder = document.createElement('option');
+cPlaceholder.textContent = "— choose a chapter —";
+cPlaceholder.value = "";
+chapterSelect.appendChild(cPlaceholder);
+Object.keys(chapters).map(Number).sort((a,b)=>a-b).forEach(ch=>{
+  const opt = document.createElement('option');
+  opt.value = ch;
+  opt.textContent = chapterNames[ch];
+  chapterSelect.appendChild(opt);
+});
+
+dateSelect.addEventListener('change', ()=>{
+  if(dateSelect.value === "") return;
+  chapterSelect.value = "";
+  const s = schedule[dateSelect.value];
+  const full = chapters[s.ch];
+  currentDeck = full.slice(s.range[0], s.range[1]+1);
+  deckTitle.textContent = `${s.date} · ${chapterNames[s.ch]}`;
+  loadDeck();
+});
+
+chapterSelect.addEventListener('change', ()=>{
+  if(chapterSelect.value === "") return;
+  dateSelect.value = "";
+  const ch = Number(chapterSelect.value);
+  currentDeck = chapters[ch].slice();
+  deckTitle.textContent = chapterNames[ch] + " (full chapter)";
+  loadDeck();
+});
+
+function loadDeck(){
+  idx = 0;
+  deckCount.textContent = currentDeck.length + " cards";
+  buildJumpDots();
+  render();
+}
+
+function buildJumpDots(){
+  jumpRow.innerHTML = "";
+  currentDeck.forEach((_,i)=>{
+    const b = document.createElement('button');
+    b.textContent = i+1;
+    b.addEventListener('click', ()=>{ idx=i; render(); });
+    jumpRow.appendChild(b);
+  });
+}
+
+function render(){
+  if(currentDeck.length === 0){
+    cardEl.style.display = "none";
+    return;
+  }
+  cardEl.style.display = "block";
+  cardEl.classList.remove('flipped');
+  const [prefix, meaning, example] = currentDeck[idx];
+  prefixText.textContent = prefix;
+  meaningText.textContent = meaning;
+  exampleText.innerHTML = example.replace(/^([^–]+–)/, '<b>$1</b>');
+  progressText.textContent = `${idx+1} / ${currentDeck.length}`;
+  prevBtn.disabled = idx === 0;
+  nextBtn.disabled = idx === currentDeck.length - 1;
+  [...jumpRow.children].forEach((b,i)=> b.classList.toggle('active', i===idx));
+}
+
+cardEl.addEventListener('click', ()=> cardEl.classList.toggle('flipped'));
+prevBtn.addEventListener('click', ()=>{ if(idx>0){ idx--; render(); } });
+nextBtn.addEventListener('click', ()=>{ if(idx<currentDeck.length-1){ idx++; render(); } });
+document.addEventListener('keydown', (e)=>{
+  if(e.key === 'ArrowRight') nextBtn.click();
+  if(e.key === 'ArrowLeft') prevBtn.click();
+  if(e.key === ' '){ e.preventDefault(); cardEl.classList.toggle('flipped'); }
+});
+
+// default: load first scheduled date
+dateSelect.value = 0;
+dateSelect.dispatchEvent(new Event('change'));
+</script>
+</body>
+</html>
