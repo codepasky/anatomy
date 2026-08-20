@@ -1,2 +1,2 @@
-# anatomy-flashcards
-A flashcard website for the terms studied in my Anatomy Advanced Class
+# https://codepasky.github.io/anatomy/
+A flashcard website for the terms studied in my Advanced Anatomy class
